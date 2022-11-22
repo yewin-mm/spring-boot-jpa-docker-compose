@@ -63,7 +63,7 @@ You should learn basic Docker Application without application first. You can see
 This project is built with
 * [Java](https://www.oracle.com/au/java/technologies/javase/javase-jdk8-downloads.html)
 * [Maven](https://maven.apache.org/download.cgi)
-* [MySQL Database](https://github.com/yewin-mm/mysql-docker-container)
+* [Containerized MySQL Database](https://github.com/yewin-mm/mysql-docker-container)
 * [Docker](https://www.docker.com/products/docker-desktop/)
 
 
@@ -180,7 +180,7 @@ Docker prerequisites can be found here, [Spring Boot Docker Sample](https://gith
  run without detached mode `docker run --net=mysql -p 8080:8080 spring-boot-jpa-docker` <br>
  you can stop (terminate) application by pressing Ctrl+C when you run application without detached mode. <br>
 * For more error debugging, logging and other docker commands, you can find in below,
-* [Dockerized Application Sample Commands, error debugging and watch logging](https://github.com/yewin-mm/spring-boot-docker-sample/blob/master/README.md#instruction)
+  * [Dockerized Application Sample Commands, error debugging and watch logging](https://github.com/yewin-mm/spring-boot-docker-sample/blob/master/README.md#instruction)
 
 
 * If you run application with detached mode and if you want to stop application, you can stop container.
