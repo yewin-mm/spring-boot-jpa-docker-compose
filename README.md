@@ -35,7 +35,7 @@
 
 # spring-boot-jpa-docker
 * This is the sample project for spring-boot with jpa for database operation using docker and build dockerized application and connect to MySQL db container.
-* So, purpose is to connect containerized MySQL database from containerized java application and do CRUD operation.
+* So, purpose is to connect containerized MySQL database from containerized java application and do CRUD operations.
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
@@ -63,7 +63,7 @@ You should learn basic Docker Application without application first. You can see
 This project is built with
 * [Java](https://www.oracle.com/au/java/technologies/javase/javase-jdk8-downloads.html)
 * [Maven](https://maven.apache.org/download.cgi)
-* [MySQL Database](https://dev.mysql.com/downloads/installer/)
+* [MySQL Database](https://github.com/yewin-mm/mysql-docker-container)
 * [Docker](https://www.docker.com/products/docker-desktop/)
 
 
@@ -77,7 +77,7 @@ So, please make sure all are installed in your machine.
 
 <a name="before-you-begin"></a>
 ### 🔔 Before you begin
-If you are new in Git, Github and new in Spring Boot configuration structure, <br>
+If you are new in Git, GitHub and new in Spring Boot configuration structure, <br>
 You should see basic detail instructions first in here [Spring Boot Application Instruction](https://github.com/yewin-mm/spring-boot-app-instruction)<br>
 If you are not good enough in basic API knowledge with Java Spring Boot, Docker basic and other spring basic knowledge, you should learn below example projects first. <br>
 Click below links.
@@ -116,7 +116,7 @@ Docker prerequisites can be found here, [Spring Boot Docker Sample](https://gith
 * Below commands need to type in your `CMD` or `Terminal` where path should be in your application folder.
 * Generate jar file
   * Type -> `mvn clean package -DskipTests=true` 
-  * Here, if you don't add skipTest, it will got compile time error because your application will try to connect to MySQL container as application.properties file. 
+  * Here, if you don't add skipTest, it will get compile time error because your application will try to connect to MySQL container as per application.properties file config db url. 
   * Because if you want to connect to MySQL container, you need to add container name in datasource url of properties file and that url can't be resolved from your local. 
   * You can also type `mvn clean install -DskipTests=true`.
 * Check docker version to make sure your installed docker is up or down by typing `docker --version`, 
@@ -152,8 +152,11 @@ Docker prerequisites can be found here, [Spring Boot Docker Sample](https://gith
   * Please make sure your created database is existed in MySQL database which I mentioned first step.
   * Type
     ```sh
-    docker run -d -p 8080:8080 spring-boot-jpa-docker
+    docker run --net=mysql -d -p 8080:8080 spring-boot-jpa-docker
     ```
+  * In there, --net is tell this application to run under mysql network. 
+  * If we don't add that network, you can't connect to MySQL database and application can't be started because our MySQL db Container is running under that `mysql` network. [MySQL db Container](https://github.com/yewin-mm/mysql-docker-container).
+  * You can also use --network instead of --net in here, those two are same.
   * In there, -d is detached mode and if we put -d in docker, application logs will be hidden and run in background.
   * If your application can't call well, can't start you can remove `-d` option to see the running logs.
   * If your application was running well, you can shut down application by clicking `ctrl+c` and can start the application by adding `-d` option again.
@@ -164,7 +167,7 @@ Docker prerequisites can be found here, [Spring Boot Docker Sample](https://gith
     * the first 8080 is the port which can call from outside and bind with inside running port 8080.
     * So, you can change the first port it to other ports like -p 9090:8080, and if so, you need to call the api of application by using 9090 port.
     * the last word is your image name and if you set tag version when you create image, <br>
-    you need to add that version in run command like `docker run -d -p 8080:8080 spring-boot-jpa-docker:1.0`
+    you need to add that version in run command like `docker run --net=mysql -d -p 8080:8080 spring-boot-jpa-docker:1.0`
 
 * Check container
   * Type (check running containers)
@@ -174,7 +177,7 @@ Docker prerequisites can be found here, [Spring Boot Docker Sample](https://gith
   * Here, you can see Container Id, Image name, etc.
 
 * If your application is not running well when application started up, you can check logs by removing `-d` to appear log in CMD or Terminal like below. <br>
- run without detached mode `docker run -p 8080:8080 spring-boot-jpa-docker` <br>
+ run without detached mode `docker run --net=mysql -p 8080:8080 spring-boot-jpa-docker` <br>
  you can stop (terminate) application by pressing Ctrl+C when you run application without detached mode. <br>
 * For more error debugging, logging and other docker commands, you can find in below,
 * [Dockerized Application Sample Commands, error debugging and watch logging](https://github.com/yewin-mm/spring-boot-docker-sample/blob/master/README.md#instruction)
