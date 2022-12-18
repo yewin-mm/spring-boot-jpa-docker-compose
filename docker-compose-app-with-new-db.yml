@@ -1,0 +1,99 @@
+# docker compose is to control one or many services at one file,
+# and below example is for controlling 2 containers, one is for db and one is for java application.
+# in this file, I used .env file for getting our credentials
+
+version: "3.9"
+services:
+  mysqldb:
+    # pull latest mysql db image from docker hub if that's not existed in your local.
+    image: mysql:latest
+
+    # bind with below `networks` keyword, we need to run under same network to call well to this db service from below app.
+    networks:
+      - my-app-network
+
+    # set container name, so that our below app can call this db service by this name.
+    container_name: new_mysql_db
+
+    # Docker support 4 restart policy,
+    # I used `unless-stopped` policy because I don't want auto restart my MySQL container after docker deamon (docker desktop) was started on both manually stopped condition and docker deamon stopped condition.
+    # You can use `always` policy if you want auto restart after docker desktop was started or even your application was runtime failed, it will always auto restart (it will cause high load in memory). You can find more about restart policy in google.
+    restart: unless-stopped
+
+    # here, I don't use env file, but I provided with using env file in this directory.
+    # you can learn that in `docker-compose-app-with-new-db-with-env.yml` file.
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=spring_boot_jpa_docker
+
+    # set port to run this db container,
+    # and avoid default port `3306` not to conflict with my existing mysql db container port
+    # but, we need to use default port `3306` when running inside docker container.
+    # so, I set mysql db public port to `3307` when calling from outside this mysql db container.
+    ports:
+      - "3307:3306"
+
+    # volume is to keep our data (persist our data) for preventing from deleting container as if we delete our container, our data can't get back.
+    # So, our database data will be stored outside of db container.
+    # Bind volume name call `db` with below `volumes` keyword.
+    # path is inside container, and you can give as you want.
+    volumes:
+      - db:/var/lib/mysql
+
+
+  myapp:
+    # set image and container name
+    image: spring-boot-jpa-image-docker-compose-use-new-mysql-db
+    container_name: spring-boot-jpa-container-docker-compose-use-new-mysql-db
+
+    # bind with below networks keyword, we need to run under same network to call above MySQL DB container.
+    networks:
+      - my-app-network
+
+    # depend_on mean, our app will run after `mysqldb` service (above db container) was started,
+    # if not so, our app can't connect to db while running our application because db isn't running at that time.
+    depends_on:
+      - mysqldb
+
+    # build keyword mean, find docker file to build under same level of this compose file,
+    # we can add context and dockerfile keyword to find our customize dockerfile if our dockerfile has not formal name like `Dockerfile-dev`.
+    build: ./
+    restart: unless-stopped
+
+    # set ports to define our java application running port
+    # I set spring app port to `8081` for public port, so, we need to call with that port when we connect to this spring app.
+    # whereas `8080` port will run inside this app container and that port need to same with port inside `application.properties` file.
+    ports:
+      - "8081:8080"
+
+    # This spring database config will override our database config which we declared in `application.properties` file
+    # `new_mysql_db` is container name which describe in above,
+    # and we need to add that name when we want to connect to our db container, please note that we can only be connected to db container which running under same network.
+    # I used root password to connect db as that password is already added when we create db container.
+    # I used MySQL8dialect because current latest MySQL version is 8.
+
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.datasource.url"  : "jdbc:mysql://new_mysql_db:$MYSQLDB_DOCKER_PORT/$MYSQLDB_DATABASE_NAME",
+        "spring.datasource.username" : "$MYSQLDB_USER",
+        "spring.datasource.password" : "$MYSQLDB_ROOT_PASSWORD",
+        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.MySQL8Dialect",
+        "spring.jpa.hibernate.ddl-auto" : "update"
+      }'
+#    stdin_open: true
+#    tty: true
+
+# activate volume name call `db` to use this name from above.
+volumes:
+  db:
+    name: new-mysql-db
+
+# activate network tab name call `my-app-network` to use this name from above services.
+networks:
+  # I created a new network call spring-jpa-mysql-network and declare driver as `bridge`, you can find more about driver setting in google.
+  # this network is bind with above network keyword
+  # Network is to define our services (2 applications in above) will run under this same network
+  # and all services need to run under same network to communicate each other. If not, services can't connect each other.
+  my-app-network:
+    driver: bridge
+    name: spring-jpa-mysql-with-new-db-container-network

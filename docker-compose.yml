@@ -1,0 +1,53 @@
+# docker compose is to control one or many services at one file,
+# and below example is for controlling 1` container that is for our java application.
+version: "3.9"
+services:
+  myapp:
+    # set image and container name
+    image: spring-boot-jpa-image-docker-compose-use-existing-mysql-db
+    container_name: spring-boot-jpa-container-docker-compose-use-existing-mysql-db
+    # Docker support 4 restart policies,
+    # I used `unless-stopped` policy because I don't want auto restart my MySQL container after docker deamon (docker desktop) was started on both manually stopped condition and docker deamon stopped condition.
+    # You can use `always` policy if you want auto restart after docker desktop was started or even your application was runtime failed, it will always auto restart (it will cause high load in memory). You can find more about restart policy in google.
+    restart: unless-stopped
+    # bind with below network keyword which this app run under which network
+    networks:
+      - mysql
+
+    # you can remove build command as docker-compose will use default `Dockerfile` in current path
+    # context . mean, current folder path
+    # dockerfile keyword is to define Dockerfile name which will read from docker-compose.
+    # So, docker-compose read Dockerfile and do action as per from that `Dockerfile`.
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # adding ports to run container.
+    # The first port is to call this application from outside. The last port is the port which is to run inside container, and it must be same with application.properties file define port.
+    # You can change the first port, if you changed port 8080 to 8081, you need to call your application api via postman or browser or other application by that 8081 port.
+    ports:
+      - "8080:8080"
+
+# here, we don't need to add for db volume as we used existing mysql db in below by running under same network
+
+# docker compose will automatically create default network if you don't add by below `network` keyword.
+# below `mysql` name is link with above networks keyword under `myapp` tab
+# If we want to communicate with MySQL db, which is running as other container (not control by this compose file),
+# for that case we need to run this app under that network, because our MySQL db is running in that network.
+# You can check out running MySQL Db as container in here. https://github.com/yewin-mm/mysql-docker-container
+# I let this app run under `mysql` network because Containers can only be connected under same network.
+networks:
+  mysql:
+    external: true
+
+# external true keyword is use if you want to use your custom network that you created by yourself.
+# So, docker don't create new network with name `mysql` and use existing network,
+# So, Please make sure you already create that network first and your MySQL db is running under that network.
+# If you used `external` network, it will not be shutdown when you do `docker-compose down` keyword.
+
+
+# If you don't want to use existing network,
+# and if you want docker to create new network to run this app,
+# you can check out in other compose files as I provided two docker compose file here,
+# 1. `docker-compose-app-with-new-db.yml`
+# 2. `docker-compose-app-with-new-db-with-env.yml`
